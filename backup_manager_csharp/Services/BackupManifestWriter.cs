@@ -23,6 +23,6 @@ public class BackupManifestWriter
     public void WriteConfig()
     {
         Directory.CreateDirectory(_manifestDirectory);
-        // File.WriteAllText(_manifestDirectory, _backupManifest.BackUpConfigToJsonString());
+        File.WriteAllText(_manifestPath, _backupManifest.BackupManifestToJsonString());
     }
 }

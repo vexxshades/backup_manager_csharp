@@ -10,9 +10,10 @@ public class BackupScheduler
     private readonly List<BackupConfig> _backupConfigs = new ConfigLoader().BackupConfigs;
     private readonly DateTime _dateTime = DateTime.Now;
     
-    public bool RequireDailyFullBackup(BackupConfig backupConfig, BackupManifest backupManifest)
+    public bool RequireDailyFullBackup(BackupConfig backupConfig)
     {
         
+        return true;
     }
 }
 
