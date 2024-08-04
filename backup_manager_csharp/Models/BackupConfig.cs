@@ -28,7 +28,7 @@ public class BackupConfig
         this.WeeklyBackupSettings = weeklyBackupSettings;
         this.MonthlyBackupSettings = monthlyBackupSettings;
     }
-    public static string WriteDefaultConfigToJson()
+    public static string GenerateDefaultConfign()
     {
         BackupConfig backupConfig = new BackupConfig()
         {
