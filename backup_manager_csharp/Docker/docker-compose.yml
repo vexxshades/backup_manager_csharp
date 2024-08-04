@@ -2,9 +2,11 @@ version: '3.8'
 
 services:
   backup_manager:
-    container_name: BackupManager
-    image: ubuntu:latest
+    container_name: backup_manager
+    image: mcr.microsoft.com/dotnet/sdk:8.0
     volumes:
-      - ../../:/source/BackupManager
-    working_dir: /source/BackupManager/backup_manager_csharp
-    command: /bin/bash -c "apt-get update && apt-get install -y wget && wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && apt-get update && apt-get install -y dotnet-sdk-8.0 && /bin/bash"
+      - ../../:/source/backup_manager
+      - ./backup_manager/configs:/opt/backup_manager/configs
+      - ./backup_manager/backups:/opt/backup_manager/backups
+    working_dir: /source/backup_manager/backup_manager_csharp
+    command: tail -f /dev/null

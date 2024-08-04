@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using backup_manager_csharp.Models.Backups;
 using backup_manager_csharp.Models.Settings;
@@ -28,7 +29,7 @@ public class BackupConfig
         this.WeeklyBackupSettings = weeklyBackupSettings;
         this.MonthlyBackupSettings = monthlyBackupSettings;
     }
-    public static string GenerateDefaultConfign()
+    public static BackupConfig GetDefaultBackupConfig(string application, string sourceDirectory)
     {
         BackupConfig backupConfig = new BackupConfig()
         {
@@ -72,11 +73,16 @@ public class BackupConfig
                     RetentionDays = 7
                 }
             },
-            Application = "minecraft",
-            SourceDirectory = "/opt/docker/minecraft/minecraft_data"
+            Application = application,
+            SourceDirectory = sourceDirectory
         };
 
-        return JsonSerializer.Serialize(backupConfig).ToString();
+        return backupConfig;
+    }
+
+    public string BackUpConfigToJsonString()
+    {
+        return JsonSerializer.Serialize(this);
     }
 }
 
