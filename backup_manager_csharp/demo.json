@@ -1,0 +1,36 @@
+{
+  "SourceDirectory": "/opt/docker/minecraft/minecraft_data",
+  "Application": "minecraft",
+  "HourlyBackupSettings": {
+    "Enabled": true,
+    "RetentionDays": 7,
+    "IncrementalBackupSettings": {
+      "Enabled": false,
+      "RetentionDays": 0
+    }
+  },
+  "DailyBackupSettings": {
+    "Enabled": true,
+    "RetentionDays": 7,
+    "IncrementalBackupSettings": {
+      "Enabled": false,
+      "RetentionDays": 0
+    }
+  },
+  "WeeklyBackupSettings": {
+    "Enabled": true,
+    "RetentionDays": 7,
+    "IncrementalBackupSettings": {
+      "Enabled": false,
+      "RetentionDays": 0
+    }
+  },
+  "MonthlyBackupSettings": {
+    "Enabled": true,
+    "RetentionDays": 7,
+    "IncrementalBackupSettings": {
+      "Enabled": false,
+      "RetentionDays": 0
+    }
+  }
+}

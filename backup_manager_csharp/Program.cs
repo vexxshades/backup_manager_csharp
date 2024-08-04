@@ -1,4 +1,5 @@
 ﻿using backup_manager_csharp.Models;
+using backup_manager_csharp.Models.Settings;
 
 namespace backup_manager_csharp
 {
@@ -6,8 +7,9 @@ namespace backup_manager_csharp
     {
         public static void Main(String[] args)
         {
-            BackupConfig.WriteDefaultConfig();
+            Console.WriteLine(BackupConfig.WriteDefaultConfigToJson());
+
         }
-        
+
     }
 }
