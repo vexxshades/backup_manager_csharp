@@ -10,10 +10,11 @@ public class BackupScheduler
     private readonly List<BackupConfig> _backupConfigs = new ConfigLoader().BackupConfigs;
     private readonly DateTime _dateTime = DateTime.Now;
     
-    public bool RequireDailyFullBackup(BackupConfig backupConfig)
+    public bool IsBackupDue(BackUpSettings backupSettings, FullBackUp fullBackUp, int days)
     {
-        
-        return true;
+        if (!backupSettings.Enabled) return false;
+        DateTime currentTime = DateTime.Now;
+        return currentTime >= fullBackUp.BackupCreationDate.AddDays(days);
     }
 }
 

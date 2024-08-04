@@ -3,3 +3,7 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+**/Docker/backup_manager
+*.deb
+
+.DS_Store
