@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices.JavaScript;
+using System.Security.AccessControl;
 using backup_manager_csharp.Models;
 using backup_manager_csharp.Models.Backups;
 using backup_manager_csharp.Models.Settings;
@@ -12,6 +13,13 @@ public class BackupScheduler
     private readonly DateTime _dateTime = DateTime.Now;
     private readonly Dictionary<BackupConfig, BackupManifest> _backupState = new Dictionary<BackupConfig,
         BackupManifest>();
+    public enum BackupFrequency
+    {
+        HOURLY,
+        DAILY,
+        WEEKLY,
+        MONTHLY
+    }
 
     public BackupScheduler()
     {
@@ -49,18 +57,57 @@ public class BackupScheduler
         else return false;
     }
 
-    public void CopyFullBackUp(BackupConfig backupConfig, BackUpSettings backupSettings )
+    public void CopyFullBackUp(BackupConfig backupConfig, BackUpSettings backupSettings, BackupFrequency backupFrequency)
     {
         string destinationDirectory = $"{_appSettings.BackupBaseDirectory}/{backupConfig.Application}";
-        string destinationTarFile = $"{destinationDirectory}/{Path.GetFileName(backupConfig.SourceDirectory)}.tar.gz";
-        _backupState[backupConfig].DailyFullBackups.Add(
-            new FullBackUp(
-                sourceDirectory: backupConfig.SourceDirectory,
-                destinationDirectory: destinationDirectory,
-                destinationTarFile: destinationTarFile
-                ));
+        string destinationFolder = $"{destinationDirectory}/{Path.GetFileName(backupConfig.SourceDirectory)}";
+        string destinationTarFile = $"{destinationFolder}.tar.gz";
+
+        switch (backupFrequency)
+        {
+            case BackupFrequency.HOURLY:
+                _backupState[backupConfig].HourlyFullBackups.Add(
+                    new FullBackUp(
+                        sourceDirectory: backupConfig.SourceDirectory,
+                        destinationDirectory: destinationDirectory,
+                        destinationTarFile: destinationTarFile
+                    ));
+                break;
+            case BackupFrequency.DAILY:
+                _backupState[backupConfig].DailyFullBackups.Add(
+                    new FullBackUp(
+                        sourceDirectory: backupConfig.SourceDirectory,
+                        destinationDirectory: destinationDirectory,
+                        destinationTarFile: destinationTarFile
+                    ));
+                break;
+            case BackupFrequency.WEEKLY:
+                _backupState[backupConfig].HourlyFullBackups.Add(
+                    new FullBackUp(
+                        sourceDirectory: backupConfig.SourceDirectory,
+                        destinationDirectory: destinationDirectory,
+                        destinationTarFile: destinationTarFile
+                    ));
+                break;
+            case BackupFrequency.MONTHLY:
+                _backupState[backupConfig].HourlyFullBackups.Add(
+                    new FullBackUp(
+                        sourceDirectory: backupConfig.SourceDirectory,
+                        destinationDirectory: destinationDirectory,
+                        destinationTarFile: destinationTarFile
+                    ));
+                break;
+        }
         
-        
+        if (!Directory.Exists(destinationDirectory))
+        {
+            Directory.CreateDirectory(destinationDirectory);
+        }
+
+        foreach (string file in Directory.GetFiles(backupConfig.SourceDirectory))
+        {
+            File.Copy(file, Path.Combine(destinationDirectory, Path.GetFileName(file)));
+        }
         
     }
 
