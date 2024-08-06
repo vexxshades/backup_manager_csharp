@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.JavaScript;
 using backup_manager_csharp.Models;
 using backup_manager_csharp.Models.Backups;
 using backup_manager_csharp.Models.Settings;
@@ -26,27 +27,48 @@ public class BackupScheduler
     {
         return backUpSettings.Enabled && fullBackUpList.Count == 0;
     }
+
     public bool IsFullBackupDue(BackUpSettings backupSettings, FullBackUp fullBackUp, int days)
     {
-        if (!backupSettings.Enabled) return false;
-        DateTime currentTime = DateTime.Now;
-        return currentTime >= fullBackUp.BackupCreationDate.AddDays(days);
+        DateTime currentDate = DateTime.Now;
+        if (currentDate >= fullBackUp.BackupCreationDate.AddDays(days))
+        {
+            return true;
+        }
+        else return false;
     }
     
     public bool IsIncrementalBackupDue(IncrementalBackupSettings backupSettings, IncrementalBackUp incrementalBackUp,
         int days)
     {
-        if (!backupSettings.Enabled) return false;
-        DateTime currentTime = DateTime.Now;
-        return currentTime >= incrementalBackUp.BackupCreationDate.AddDays(days);
+        DateTime currentDate = DateTime.Now;
+        if (currentDate >= incrementalBackUp.BackupCreationDate.AddDays(days))
+        {
+            return true;
+        }
+        else return false;
     }
 
-    public void ScheduleFullBackups()
+    public void CopyFullBackUp(BackupConfig backupConfig, BackUpSettings backupSettings )
     {
-        foreach(BackupConfig backupConfig in _backupConfigs)
+        string destinationDirectory = $"{_appSettings.BackupBaseDirectory}/{backupConfig.Application}";
+        string destinationTarFile = $"{destinationDirectory}/{Path.GetFileName(backupConfig.SourceDirectory)}.tar.gz";
+        _backupState[backupConfig].DailyFullBackups.Add(
+            new FullBackUp(
+                sourceDirectory: backupConfig.SourceDirectory,
+                destinationDirectory: destinationDirectory,
+                destinationTarFile: destinationTarFile
+                ));
+        
+        
+        
+    }
+
+    public void ApplyFullBackups()
+    {
+        foreach (KeyValuePair<BackupConfig, BackupManifest> backupState in _backupState)
         {
-            BackupManifest backupManifest =
-                BackupManifestLoader.LoadByApplication(backupConfig.Application, _appSettings);
+            
         }
     }
     

@@ -12,6 +12,6 @@ public abstract class Backup
         this.SourceDirectory = sourceDirectory;
         this.DestinationDirectory = destinationDirectory;
         this.DestinationTarFile = destinationTarFile;
-        this.BackupCreationDate = new DateTime();
+        this.BackupCreationDate = DateTime.Now;
     }
 }
