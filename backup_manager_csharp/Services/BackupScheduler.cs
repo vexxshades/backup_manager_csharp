@@ -8,7 +8,7 @@ namespace backup_manager_csharp.Services;
 
 public class BackupScheduler
 {
-    private readonly AppSettings _appSettings = AppSettingsLoader.Load();
+    private readonly AppSettings _appSettings;
     private readonly List<BackupConfig> _backupConfigs = new ConfigLoader().BackupConfigs;
     private readonly DateTime _dateTime = DateTime.Now;
     private readonly Dictionary<BackupConfig, BackupManifest> _backupState = new Dictionary<BackupConfig,
@@ -21,8 +21,9 @@ public class BackupScheduler
         MONTHLY
     }
 
-    public BackupScheduler()
+    public BackupScheduler(AppSettings appSettings)
     {
+        this._appSettings = appSettings;
         foreach (BackupConfig backupConfig in _backupConfigs)
         {
             BackupManifest backupManifest = BackupManifestLoader.LoadByApplication(backupConfig.Application
@@ -82,7 +83,7 @@ public class BackupScheduler
                     ));
                 break;
             case BackupFrequency.WEEKLY:
-                _backupState[backupConfig].HourlyFullBackups.Add(
+                _backupState[backupConfig].WeeklyFullBackups.Add(
                     new FullBackUp(
                         sourceDirectory: backupConfig.SourceDirectory,
                         destinationDirectory: destinationDirectory,
@@ -90,7 +91,7 @@ public class BackupScheduler
                     ));
                 break;
             case BackupFrequency.MONTHLY:
-                _backupState[backupConfig].HourlyFullBackups.Add(
+                _backupState[backupConfig].MonthlyFullBackups.Add(
                     new FullBackUp(
                         sourceDirectory: backupConfig.SourceDirectory,
                         destinationDirectory: destinationDirectory,
