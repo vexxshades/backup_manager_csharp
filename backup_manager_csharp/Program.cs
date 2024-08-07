@@ -20,6 +20,9 @@ namespace backup_manager_csharp
 
             var configLoader = new ConfigLoader();
             Console.WriteLine(configLoader.BackupConfigs.ToString());
+
+            BackupScheduler backupScheduler = new BackupScheduler(AppSettingsLoader.Load());
+            backupScheduler.ApplyFullBackups();
         }
 
     }

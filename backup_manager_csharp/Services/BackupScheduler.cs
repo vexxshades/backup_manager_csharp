@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using backup_manager_csharp.Models;
 using backup_manager_csharp.Models.Backups;
 using backup_manager_csharp.Models.Settings;
@@ -32,9 +33,11 @@ public class BackupScheduler
         }
     }
 
-    public bool IsFirstBackUp(List<FullBackUp> fullBackUpList, BackUpSettings backUpSettings)
+    public bool IsFirstBackUp(List<FullBackUp> fullBackUpList, BackUpSettings backUpSettings, string application)
     {
+        Console.WriteLine($"No backup found for {application}.");
         return backUpSettings.Enabled && fullBackUpList.Count == 0;
+        
     }
 
     public bool IsFullBackupDue(BackUpSettings backupSettings, FullBackUp fullBackUp, int days)
@@ -57,8 +60,7 @@ public class BackupScheduler
         else return false;
     }
 
-    public void CopyFullBackUp(BackupConfig backupConfig, BackUpSettings backupSettings,
-        BackupFrequency backupFrequency)
+    public void CopyFullBackUp(BackupConfig backupConfig, BackupFrequency backupFrequency)
     {
         string destinationDirectory = $"{_appSettings.BackupBaseDirectory}/{backupConfig.Application}";
         string destinationFolder = $"{destinationDirectory}/{Path.GetFileName(backupConfig.SourceDirectory)}";
@@ -75,10 +77,16 @@ public class BackupScheduler
         {
             Directory.CreateDirectory(destinationDirectory);
         }
-
+        
         foreach (string file in Directory.GetFiles(backupConfig.SourceDirectory))
         {
             File.Copy(file, Path.Combine(destinationDirectory, Path.GetFileName(file)));
+        }
+
+        foreach (string directory in Directory.GetDirectories(backupConfig.SourceDirectory))
+        {
+            File.Copy(directory, Path.Combine(destinationDirectory,
+                Path.GetDirectoryName(directory)));
         }
 
         switch (backupFrequency)
@@ -98,15 +106,39 @@ public class BackupScheduler
         }
     }
 
+    public void ProcessBackups(string application, BackUpSettings backUpSettings, List<FullBackUp> fullBackUps,
+        BackupConfig backupConfig, BackupFrequency frequency)
+    {
+        bool isFirstBackup = IsFirstBackUp(fullBackUps, backUpSettings, application);
+        if (isFirstBackup)
+        {
+            CopyFullBackUp(backupConfig, frequency);
+        }
+        FullBackUp lastFullBackup = fullBackUps[fullBackUps.Count - 1];
+        bool isFullBackupDue = IsFullBackupDue(backUpSettings, lastFullBackup, 1);
+        if (isFullBackupDue)
+        {
+            CopyFullBackUp(backupConfig, frequency);
+        }
 
-// public void ApplyFullBackups()
-    // {
-    //     foreach (KeyValuePair<BackupConfig, BackupManifest> backupState in _backupState)
-    //     {
-    //         
-    //     }
-    // }
-    //
+    }
+
+    public void ApplyFullBackups()
+    {
+        foreach (KeyValuePair<BackupConfig, BackupManifest> backupState in _backupState)
+        {
+            string application = backupState.Key.Application;
+            BackUpSettings dailyBackupSettings = backupState.Key.DailyBackupSettings;
+            List<FullBackUp> dailyFullBackups = backupState.Value.DailyFullBackups;
+            ProcessBackups(application, dailyBackupSettings, dailyFullBackups, backupState.Key, BackupFrequency.DAILY);
+            
+            // Need to go back and make BackupFrequency.DAILY actually do something in the underlying logic.
+
+        }
+
+        return;
+    }
+    
     
 }
 
