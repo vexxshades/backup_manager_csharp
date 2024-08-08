@@ -14,7 +14,7 @@ namespace backup_manager_csharp
                     "/opt/docker/minecraft/minecraft_data"));
             configWriter.WriteConfig();
 
-            var manifestWriter = new BackupManifestWriter(BackupManifest.GetDefaultBackupManifest(), "minecraft");
+            var manifestWriter = new BackupManifestWriter(BackupManifest.GetDefaultBackupManifest(), "minecraft1");
             
             manifestWriter.WriteConfig();
 

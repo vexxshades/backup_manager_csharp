@@ -138,12 +138,14 @@ public class BackupScheduler
     }
 
     public void ProcessBackups(string application, BackUpSettings backUpSettings, List<FullBackUp> fullBackUps,
-        BackupConfig backupConfig, BackupFrequency frequency)
+        BackupConfig backupConfig, BackupFrequency frequency, BackupManifest backupManifest)
     {
         bool isFirstBackup = IsFirstBackUp(fullBackUps, backUpSettings, application);
         if (isFirstBackup)
         {
             CopyFullBackUp(backupConfig, frequency);
+            BackupManifestWriter backupManifestWriter = new BackupManifestWriter(backupManifest, application);
+            backupManifestWriter.WriteConfig();
         }
 
         if (fullBackUps.Count == 0)
@@ -156,33 +158,40 @@ public class BackupScheduler
         if (isFullBackupDue)
         {
             CopyFullBackUp(backupConfig, frequency);
+            BackupManifestWriter backupManifestWriter = new BackupManifestWriter(backupManifest, application);
+            backupManifestWriter.WriteConfig();
         }
 
     }
 
     public void ApplyFullBackups()
     {
-        foreach (KeyValuePair<BackupConfig, BackupManifest> backupState in _backupState)
+        // foreach (KeyValuePair<BackupConfig, BackupManifest> backupState in _backupState)
+        foreach(BackupConfig backupConfig in _backupConfigs)
         {
-            string application = backupState.Key.Application;
+            string application = backupConfig.Application;
+            BackupManifest backupManifest = BackupManifestLoader.LoadByApplication(application, _appSettings);
+            BackUpSettings hourlyBackupSettings = backupConfig.HourlyBackupSettings;
+            List<FullBackUp> hourlyFullBackups = backupManifest.HourlyFullBackups;
+            ProcessBackups(application, hourlyBackupSettings, hourlyFullBackups, backupConfig, BackupFrequency.HOURLY,
+                backupManifest);
             
-            BackUpSettings hourlyBackupSettings = backupState.Key.HourlyBackupSettings;
-            List<FullBackUp> hourlyFullBackups = backupState.Value.HourlyFullBackups;
-            ProcessBackups(application, hourlyBackupSettings, hourlyFullBackups, backupState.Key, BackupFrequency.HOURLY);
+            BackUpSettings dailyBackupSettings = backupConfig.DailyBackupSettings;
+            List<FullBackUp> dailyFullBackups = backupManifest.DailyFullBackups;
+            ProcessBackups(application, dailyBackupSettings, dailyFullBackups, backupConfig, BackupFrequency.DAILY,
+                backupManifest);
             
-            BackUpSettings dailyBackupSettings = backupState.Key.DailyBackupSettings;
-            List<FullBackUp> dailyFullBackups = backupState.Value.DailyFullBackups;
-            ProcessBackups(application, dailyBackupSettings, dailyFullBackups, backupState.Key, BackupFrequency.DAILY);
+            BackUpSettings weeklyBackupSettings = backupConfig.WeeklyBackupSettings;
+            List<FullBackUp> weeklyFullBackups = backupManifest.WeeklyFullBackups;
+            ProcessBackups(application, weeklyBackupSettings, weeklyFullBackups, backupConfig, BackupFrequency.HOURLY,
+                backupManifest);
             
-            BackUpSettings weeklyBackupSettings = backupState.Key.WeeklyBackupSettings;
-            List<FullBackUp> weeklyFullBackups = backupState.Value.WeeklyFullBackups;
-            ProcessBackups(application, weeklyBackupSettings, weeklyFullBackups, backupState.Key, BackupFrequency.HOURLY);
-            
-            BackUpSettings monthlyBackupSettings = backupState.Key.MonthlyBackupSettings;
-            List<FullBackUp> monthlyFullBackups = backupState.Value.MonthlyFullBackups;
-            ProcessBackups(application, monthlyBackupSettings, monthlyFullBackups, backupState.Key, BackupFrequency.DAILY);
+            BackUpSettings monthlyBackupSettings = backupConfig.MonthlyBackupSettings;
+            List<FullBackUp> monthlyFullBackups = backupManifest.MonthlyFullBackups;
+            ProcessBackups(application, monthlyBackupSettings, monthlyFullBackups, backupConfig, BackupFrequency.DAILY,
+                backupManifest);
 
-            var backupManifestWriter = new BackupManifestWriter(backupState.Value, application);
+            var backupManifestWriter = new BackupManifestWriter(backupManifest, application);
             backupManifestWriter.WriteConfig();
 
         }
