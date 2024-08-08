@@ -10,7 +10,7 @@ namespace backup_manager_csharp
         public static void Main(String[] args)
         {
             var configWriter = new ConfigWriter
-                (BackupConfig.GetDefaultBackupConfig("minecraft",
+                (BackupConfig.GetDefaultBackupConfig("minecraft1",
                     "/opt/docker/minecraft/minecraft_data"));
             configWriter.WriteConfig();
 

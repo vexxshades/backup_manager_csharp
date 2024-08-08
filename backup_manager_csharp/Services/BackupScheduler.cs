@@ -40,16 +40,45 @@ public class BackupScheduler
         
     }
 
-    public bool IsFullBackupDue(BackUpSettings backupSettings, FullBackUp fullBackUp, int days)
+    public bool IsFullBackupDue(BackUpSettings backupSettings, FullBackUp fullBackUp, BackupFrequency backupFrequency)
     {
         DateTime currentDate = DateTime.Now;
-        if (currentDate >= fullBackUp.BackupCreationDate.AddDays(days))
+        switch (backupFrequency)
         {
-            return true;
-        }
-        else return false;
-    }
+            case BackupFrequency.HOURLY:
+                if (currentDate >= fullBackUp.BackupCreationDate.AddHours(1))
+                {
+                    return true;
+                }
 
+                break;
+            case BackupFrequency.DAILY:
+                if (currentDate >= fullBackUp.BackupCreationDate.AddDays(1))
+                {
+                    return true;
+                }
+
+                break;
+            case BackupFrequency.WEEKLY:
+                if (currentDate >= fullBackUp.BackupCreationDate.AddDays(7))
+                {
+                    return true;
+                }
+
+                break;
+            case BackupFrequency.MONTHLY:
+                if (currentDate >= fullBackUp.BackupCreationDate.AddMonths(1))
+                {
+                    return true;
+                }
+                break;
+            
+        }
+        
+        return false;
+
+    }
+    
     public bool IsIncrementalBackupDue(IncrementalBackupSettings backupSettings, IncrementalBackUp incrementalBackUp,
         int days)
     {
@@ -104,6 +133,8 @@ public class BackupScheduler
                 _backupState[backupConfig].MonthlyFullBackups.Add(fullBackup);
                 break;
         }
+        
+        
     }
 
     public void ProcessBackups(string application, BackUpSettings backUpSettings, List<FullBackUp> fullBackUps,
@@ -114,8 +145,14 @@ public class BackupScheduler
         {
             CopyFullBackUp(backupConfig, frequency);
         }
+
+        if (fullBackUps.Count == 0)
+        {
+            return;
+        }
+        
         FullBackUp lastFullBackup = fullBackUps[fullBackUps.Count - 1];
-        bool isFullBackupDue = IsFullBackupDue(backUpSettings, lastFullBackup, 1);
+        bool isFullBackupDue = IsFullBackupDue(backUpSettings, lastFullBackup, frequency);
         if (isFullBackupDue)
         {
             CopyFullBackUp(backupConfig, frequency);
@@ -128,15 +165,27 @@ public class BackupScheduler
         foreach (KeyValuePair<BackupConfig, BackupManifest> backupState in _backupState)
         {
             string application = backupState.Key.Application;
+            
+            BackUpSettings hourlyBackupSettings = backupState.Key.HourlyBackupSettings;
+            List<FullBackUp> hourlyFullBackups = backupState.Value.HourlyFullBackups;
+            ProcessBackups(application, hourlyBackupSettings, hourlyFullBackups, backupState.Key, BackupFrequency.HOURLY);
+            
             BackUpSettings dailyBackupSettings = backupState.Key.DailyBackupSettings;
             List<FullBackUp> dailyFullBackups = backupState.Value.DailyFullBackups;
             ProcessBackups(application, dailyBackupSettings, dailyFullBackups, backupState.Key, BackupFrequency.DAILY);
             
-            // Need to go back and make BackupFrequency.DAILY actually do something in the underlying logic.
+            BackUpSettings weeklyBackupSettings = backupState.Key.WeeklyBackupSettings;
+            List<FullBackUp> weeklyFullBackups = backupState.Value.WeeklyFullBackups;
+            ProcessBackups(application, weeklyBackupSettings, weeklyFullBackups, backupState.Key, BackupFrequency.HOURLY);
+            
+            BackUpSettings monthlyBackupSettings = backupState.Key.MonthlyBackupSettings;
+            List<FullBackUp> monthlyFullBackups = backupState.Value.MonthlyFullBackups;
+            ProcessBackups(application, monthlyBackupSettings, monthlyFullBackups, backupState.Key, BackupFrequency.DAILY);
+
+            var backupManifestWriter = new BackupManifestWriter(backupState.Value, application);
+            backupManifestWriter.WriteConfig();
 
         }
-
-        return;
     }
     
     
